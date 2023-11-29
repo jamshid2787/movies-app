@@ -4,6 +4,8 @@ export default class Main extends Component {
 	state = {
 		moviesData: [],
 		genresData: [],
+		activeGenre: 'All Genres',
+		searchQuery: '',
 	};
 
 	async componentDidMount() {
@@ -27,43 +29,63 @@ export default class Main extends Component {
 			console.error('Error fetching data:', error);
 		}
 	}
+
+	handleGenreClick = (genreId: string) => {
+		this.setState({ activeGenre: genreId });
+	};
+
+	handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		this.setState({ searchQuery: event.target.value });
+	};
+
 	render() {
+		const { moviesData, genresData, activeGenre, searchQuery } = this.state;
+
+		const filteredMovies = moviesData.filter((movie: any) => {
+			const genreCondition = activeGenre === 'All Genres' || movie.genre._id === activeGenre;
+
+			const searchCondition = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+
+			return genreCondition && searchCondition;
+		});
+
 		return (
 			<>
 				<main className="container">
 					<div className="row">
 						<div className="col-3">
 							<ul className="list-group">
-								<li className="list-group-item">All Genres</li>
-								{this.state.genresData.map((genre: any) => (
-									<li className="list-group-item">{genre.name}</li>
+								<li
+									className={`list-group-item ${activeGenre === 'All Genres' ? 'active' : ''}`}
+									onClick={() => this.handleGenreClick('All Genres')}
+								>
+									All Genres
+								</li>
+								{genresData.map((genre: any) => (
+									<li
+										key={genre._id}
+										className={`list-group-item ${activeGenre === genre._id ? 'active' : ''}`}
+										onClick={() => this.handleGenreClick(genre._id)}
+									>
+										{genre.name}
+									</li>
 								))}
 							</ul>
 						</div>
 						<div className="col">
-							<p>Showing {this.state.moviesData.length} movies in the database.</p>
+							<p>Showing {filteredMovies.length} movies in the database.</p>
 							<input
 								type="text"
 								name="query"
+								value={searchQuery}
+								onChange={this.handleSearchChange}
 								className="form-control my-3"
 								placeholder="Search..."
-								// value=""
 							/>
 							<table className="table">
-								<thead>
-									<tr>
-										<th className="clickable">
-											Title <i className="fa fa-sort-asc"></i>
-										</th>
-										<th className="clickable">Genre </th>
-										<th className="clickable">Stock </th>
-										<th className="clickable">Rate </th>
-										<th className="clickable"> </th>
-									</tr>
-								</thead>
 								<tbody>
-									{this.state.moviesData.map((movie: any) => (
-										<tr>
+									{filteredMovies.map((movie: any) => (
+										<tr key={movie._id}>
 											<td>{movie.title}</td>
 											<td>{movie.genre.name}</td>
 											<td>{movie.numberInStock}</td>
@@ -72,40 +94,6 @@ export default class Main extends Component {
 									))}
 								</tbody>
 							</table>
-							{/* <nav>
-         <ul className="pagination">
-          <li className="page-item active">
-           <a className="page-link">1</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">2</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">3</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">4</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">5</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">6</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">7</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">8</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">9</a>
-          </li>
-          <li className="page-item">
-           <a className="page-link">10</a>
-          </li>
-         </ul>
-        </nav> */}
 						</div>
 					</div>
 				</main>
